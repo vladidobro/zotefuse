@@ -1,7 +1,7 @@
 # Zotero FUSE
 
 View your zotero library as a local directory structure.
-Currently, it is implemented only using symlinks instead of true FUSE (userspace filesystem)
+Currently, it is implemented only using symlinks instead of true FUSE (userspace filesystem).
 
 This program
 1. reads the local sqlite zotero database.
