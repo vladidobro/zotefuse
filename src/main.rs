@@ -1,9 +1,10 @@
 use clap::{Arg, ArgAction, Command};
 use fuser::MountOption;
 use std::collections::HashMap;
-use crate::zoterofs::{ZoteroFS, Entry};
+use crate::symlinkfs::{SymlinkFS, Entry};
 
-mod zoterofs;
+mod symlinkfs;
+mod zotero;
 
 fn main() {
     let matches = Command::new("zoterofs")
@@ -26,9 +27,10 @@ fn main() {
         options.push(MountOption::AutoUnmount);
     }
 
-    let fs = ZoteroFS(HashMap::from([
+    let fs = SymlinkFS(HashMap::from([
         (1, Entry::Dir(HashMap::from([("dir".to_string(), 2)]))),
-        (2, Entry::Dir(HashMap::new())),
+        (2, Entry::Dir(HashMap::from([("link".to_string(), 3)]))),
+        (3, Entry::Link("/Users/vladislavwohlrath/a".to_string())),
     ]));
 
     fuser::mount2(fs, mountpoint, &options).unwrap();
