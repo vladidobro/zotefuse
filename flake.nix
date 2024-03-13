@@ -20,14 +20,18 @@
         buildInputs = with pkgs; [
           cargo
           rustc
+          libiconv
         ];
       };
 
       packages.default = pkgs.rustPlatform.buildRustPackage {
         pname = "zoterofs";
         version = "0.0.1";
+        buildInputs = with pkgs; [
+          macfuse-stubs
+        ];
         src = ./.;
-        cargoHash = "";
+        cargoHash = "sha256-zDkARXz0nTSnwykdGShpLh3Sz7N8CRhMf1baiklhnRM=";
         meta = {
           description = "Zotero database FUSE filesystem";
           homepage = "https://github.com/vladidobro/zoterofs";
