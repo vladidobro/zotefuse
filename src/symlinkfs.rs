@@ -93,7 +93,6 @@ impl Filesystem for SymlinkFS {
         offset: i64,
         mut reply: ReplyDirectory,
     ) {
-        dbg!(ino, offset);
         let Some(entry) = self.0.get(&ino) else { reply.error(ENOENT); return };
         match entry {
             Entry::Link(_) => {
@@ -113,7 +112,6 @@ impl Filesystem for SymlinkFS {
                     (*e.1, FileType::from(entry), e.0)
                 });
                 for (i, (ino, ftype, name)) in dots.into_iter().chain(entries).enumerate().skip(offset as usize) {
-                    dbg!(ino, ftype, name);
                     if reply.add(ino, (i + 3) as i64, ftype, &name) {
                         break;
                     }
