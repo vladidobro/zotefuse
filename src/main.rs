@@ -34,13 +34,7 @@ fn main() {
         options.push(MountOption::AutoUnmount);
     }
 
-    let fs = SymlinkFS(HashMap::from([
-        (1, Entry::Dir(HashMap::from([("dir".to_string(), 2)]))),
-        (2, Entry::Dir(HashMap::from([("link".to_string(), 3)]))),
-        (3, Entry::Link("/Users/vladislavwohlrath/a".to_string())),
-    ]));
-
-    let fs = zoterofs(&zoterodir);
+    //let fs = zoterofs(&zoterodir);
 
 
     zotero::read_db(&zoterodir);
