@@ -6,6 +6,11 @@ license = "GPL-3.0-only"
 description = "FUSE filesystem for mounting the Zotero library"
 repository = "https://github.com/vladidobro/zoterofs"
 readme = "README.md"
+exclude = [
+  ".envrc",
+  "flake.nix",
+  "flake.lock",
+]
 
 [dependencies]
 fuser = "*"
