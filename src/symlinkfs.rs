@@ -3,12 +3,64 @@ use fuser::{
     Request,
 };
 use libc::ENOENT;
+use std::fs::canonicalize;
 use std::ffi::OsStr;
 use std::time::{Duration, UNIX_EPOCH};
 use std::collections::HashMap;
+use std::path::{Path, Component};
 
 pub struct SymlinkFS(pub HashMap<u64, Entry>);
 
+
+pub fn entries_from_links(links: Vec<(String, String)>, basedir: &str) -> HashMap<u64, Entry> {
+    let basedir = canonicalize(Path::new(basedir)).unwrap();
+
+    let mut entries = HashMap::new();
+    entries.insert(1, Entry::Dir(HashMap::new()));
+    let mut curinode = 2;
+
+    for (mountpoint, storagepath) in links.iter() {
+        entries.insert(
+            curinode, 
+            Entry::Link(
+                String::from(
+                    basedir
+                    .join(storagepath)
+                    .to_str()
+                    .unwrap()
+                )
+            )
+        );
+        let linkinode = curinode;
+        curinode += 1;
+
+        let mnt = Path::new(mountpoint);
+
+        let mut dirinode: u64 = 1;
+        if let Some(parent) = mnt.parent() {
+            for component in parent.components() {
+                let Component::Normal(name) = component else { panic!() };
+                let name = String::from(name.to_str().unwrap());
+                let Entry::Dir(dirmap) = entries.get_mut(&dirinode).unwrap() else { panic!() };
+                if !dirmap.contains_key(&name) {
+                    dirmap.insert(name, curinode);
+                    entries.insert(curinode, Entry::Dir(HashMap::new()));
+                    dirinode = curinode;
+                    curinode += 1;
+                } else {
+                    dirinode = *dirmap.get(&name).unwrap();
+                }
+            }
+        }
+        let Some(Entry::Dir(dirmap)) = entries.get_mut(&dirinode) else { panic!() };
+        let name = mnt.file_name().unwrap();
+        dirmap.insert(String::from(name.to_str().unwrap()), linkinode);
+    }
+
+    entries
+}
+
+#[derive(Debug)]
 pub enum Entry {
     Dir(HashMap<String, u64>),
     Link(String),

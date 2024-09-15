@@ -1,42 +1,31 @@
-use clap::{Arg, ArgAction, Command};
+use clap::Parser;
 use fuser::MountOption;
-use std::collections::HashMap;
-use crate::symlinkfs::{SymlinkFS, Entry};
-use crate::zotero::zoterofs;
+use crate::symlinkfs::{SymlinkFS, entries_from_links};
+use std::path::Path;
 
-mod symlinkfs;
-mod zotero;
+pub mod symlinkfs;
+pub mod zotero;
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    zoterohome: String,
+    mountpoint: String,
+}
 
 fn main() {
-    let matches = Command::new("zoterofs")
-        .author("Vladislav Wohlrath")
-        .arg(
-            Arg::new("MOUNTPOINT")
-                .required(true)
-                .index(1)
-        )
-        .arg(
-            Arg::new("ZOTERODIR")
-                .required(true)
-                .index(2)
-        )
-        .arg(
-            Arg::new("no-auto-unmount")
-                .long("no-auto-unmount")
-                .action(ArgAction::SetFalse)
-                .help("Don't automatically unmount on process exit"),
-        )
-        .get_matches();
-    let mountpoint = matches.get_one::<String>("MOUNTPOINT").unwrap();
-    let zoterodir = matches.get_one::<String>("ZOTERODIR").unwrap();
-    let mut options = vec![MountOption::RO, MountOption::FSName("zoterofs".to_string())];
-    if !matches.get_flag("no-auto-unmount") {
-        options.push(MountOption::AutoUnmount);
-    }
+    let cli = Cli::parse();
 
-    //let fs = zoterofs(&zoterodir);
+    let options = vec![
+        MountOption::RO, 
+        MountOption::FSName("zoterofs".to_string()), 
+        MountOption::AutoUnmount
+    ];
 
+    let links = zotero::read_db(&cli.zoterohome);
+    let storagepath = Path::new(&cli.zoterohome).join("storage");
+    let entries = entries_from_links(links, storagepath.to_str().unwrap());
+    let fs = SymlinkFS(entries);
 
-    zotero::read_db(&zoterodir);
-    //fuser::mount2(fs, mountpoint, &options).unwrap();
+    fuser::mount2(fs, &cli.mountpoint, &options).unwrap();
 }
