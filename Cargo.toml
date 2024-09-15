@@ -14,6 +14,6 @@ exclude = [
 
 [dependencies]
 fuser = "0.14.0"
-clap = { versioin="4.4.16", features=["derive"] }
+clap = { version="4.4.16", features=["derive"] }
 libc = ">=0.2"
 sqlite = ">=0.30"
